@@ -1,0 +1,45 @@
+spring:
+  application:
+    name: evote-verification
+  # H2 인메모리 DB (로컬 테스트용 기본 프로파일)
+  datasource:
+    url: jdbc:h2:mem:evotedb;DB_CLOSE_DELAY=-1;DB_CLOSE_ON_EXIT=FALSE
+    driver-class-name: org.h2.Driver
+    username: sa
+    password:
+  h2:
+    console:
+      enabled: true
+  # JPA 자동 구성 제외 (MyBatis 사용)
+  autoconfigure:
+    exclude:
+      - org.springframework.boot.autoconfigure.orm.jpa.HibernateJpaAutoConfiguration
+      - org.springframework.boot.autoconfigure.data.jpa.JpaRepositoriesAutoConfiguration
+  # Ehcache 3 JCache 설정
+  cache:
+    type: jcache
+    jcache:
+      config: classpath:ehcache.xml
+  # Quartz 설정
+  quartz:
+    job-store-type: memory
+    properties:
+      org:
+        quartz:
+          threadPool:
+            threadCount: 3
+
+# MyBatis 설정 (JPA 대신 MyBatis 사용 - 8-evote 특이사항)
+mybatis:
+  mapper-locations: classpath:mapper/*.xml
+  configuration:
+    map-underscore-to-camel-case: true
+    log-impl: org.apache.ibatis.logging.slf4j.Slf4jImpl
+
+server:
+  port: 8083
+
+logging:
+  level:
+    com.ss.evote: DEBUG
+    org.mybatis: DEBUG

@@ -1,0 +1,369 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<project xmlns="http://maven.apache.org/POM/4.0.0"
+         xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance"
+         xsi:schemaLocation="http://maven.apache.org/POM/4.0.0
+                             https://maven.apache.org/xsd/maven-4.0.0.xsd">
+    <modelVersion>4.0.0</modelVersion>
+
+    <!-- ============================================================== -->
+    <!-- Parent: Spring Boot 3.5.11                                     -->
+    <!-- Spring Boot 3.x는 Jakarta EE 10 기반, JDK 17+ 필수            -->
+    <!-- ============================================================== -->
+    <parent>
+        <groupId>org.springframework.boot</groupId>
+        <artifactId>spring-boot-starter-parent</artifactId>
+        <version>3.5.11</version>
+        <relativePath/>
+    </parent>
+
+    <groupId>com.ss</groupId>
+    <artifactId>evote</artifactId>
+    <version>1.0.0</version>
+    <packaging>jar</packaging>
+    <name>evote</name>
+    <description>전자투표 시스템 - Spring Boot 3 전환</description>
+
+    <properties>
+        <java.version>17</java.version>
+    </properties>
+
+    <dependencies>
+
+        <!-- ============================================================== -->
+        <!-- Boot Starters (ASIS 개별 라이브러리를 Boot Starter로 대체)     -->
+        <!-- ============================================================== -->
+
+        <!-- ASIS: Spring Framework 3.2.x (spring-webmvc, spring-web 등 개별 의존)
+             TOBE: Spring Framework 6.1+ (Boot 3.5.11 내장)
+             ASIS: Jackson 1.x (org.codehaus.jackson)
+             TOBE: Jackson 2.17+ (com.fasterxml.jackson, Boot 관리 버전)
+             전환 이유: Spring 5 이하 EOL, Jackson 1.x 보안 취약점 다수 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-web</artifactId>
+        </dependency>
+
+        <!-- ASIS: Hibernate Validator 4.1 (javax.validation)
+             TOBE: Hibernate Validator 8.x (jakarta.validation, Boot 관리 버전)
+             전환 이유: javax → jakarta 네임스페이스 전환, Bean Validation 3.0 적용 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-validation</artifactId>
+        </dependency>
+
+        <!-- ASIS: aopalliance 1.0 + AspectJ 1.6.8 (개별 의존)
+             TOBE: AspectJ 1.9.21+ (Boot 관리 버전)
+             전환 이유: AspectJ 1.6.x EOL, Spring 6 AOP 프록시 방식 변경 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-aop</artifactId>
+        </dependency>
+
+        <!-- ASIS: 캐시 직접 구현 또는 Spring Cache 수동 설정
+             TOBE: Spring Cache 추상화 (Boot 자동 설정)
+             전환 이유: @EnableCaching + CacheManager 자동 구성으로 설정 간소화 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-cache</artifactId>
+        </dependency>
+
+        <!-- ASIS: Quartz 1.x (수동 SchedulerFactory 설정)
+             TOBE: Quartz 2.5+ (Boot 자동 설정, spring-boot-starter-quartz)
+             전환 이유: Quartz 1.x EOL, Boot 통합으로 DataSource 기반 JobStore 자동 구성 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-quartz</artifactId>
+        </dependency>
+
+        <!-- ASIS: JUnit 4.x + Spring Test 개별 설정
+             TOBE: JUnit 5 (Jupiter) + Spring Boot Test (Boot 관리 버전)
+             전환 이유: JUnit 4 유지보수 모드, @RunWith → @ExtendWith 전환 -->
+        <dependency>
+            <groupId>org.springframework.boot</groupId>
+            <artifactId>spring-boot-starter-test</artifactId>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- ============================================================== -->
+        <!-- MyBatis (JPA 대신 사용 - 8-evote 특이사항)                    -->
+        <!-- ============================================================== -->
+
+        <!-- ASIS: mybatis 3.2.x (수동 SqlSessionFactory 설정)
+             TOBE: mybatis-spring-boot-starter 3.0.3 (Boot 자동 설정)
+             전환 이유: MyBatis Spring Boot Starter로 SqlSessionFactory/MapperScan 자동 구성
+             참고: 본 프로젝트는 JPA(Hibernate) 대신 MyBatis를 사용한다 -->
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter</artifactId>
+            <version>3.0.3</version>
+        </dependency>
+
+        <!-- MyBatis Test: @MybatisTest 슬라이스 테스트 지원 -->
+        <dependency>
+            <groupId>org.mybatis.spring.boot</groupId>
+            <artifactId>mybatis-spring-boot-starter-test</artifactId>
+            <version>3.0.3</version>
+            <scope>test</scope>
+        </dependency>
+
+        <!-- H2 인메모리 DB - 로컬 테스트 및 개발 환경용 -->
+        <dependency>
+            <groupId>com.h2database</groupId>
+            <artifactId>h2</artifactId>
+            <scope>runtime</scope>
+        </dependency>
+
+        <!-- ============================================================== -->
+        <!-- 별도 추가 라이브러리 (Boot가 관리하지 않는 라이브러리 포함)     -->
+        <!-- ============================================================== -->
+
+        <!-- ASIS: antisamy 1.4.4
+             TOBE: antisamy 1.7.6
+             전환 이유: XSS 방어 정책 파일 기반 HTML 필터링, 다수 CVE 패치 적용
+             [제거] lucy-xss → 유지보수 중단, Jakarta 미대응, antisamy로 대체 -->
+        <dependency>
+            <groupId>org.owasp.antisamy</groupId>
+            <artifactId>antisamy</artifactId>
+            <version>1.7.6</version>
+        </dependency>
+
+        <!-- ASIS: commons-beanutils 1.8.x
+             TOBE: commons-beanutils 1.9.4
+             전환 이유: CVE-2014-0114 등 보안 취약점 패치, PropertyUtils 개선 -->
+        <dependency>
+            <groupId>commons-beanutils</groupId>
+            <artifactId>commons-beanutils</artifactId>
+            <version>1.9.4</version>
+        </dependency>
+
+        <!-- ASIS: commons-codec 1.x
+             TOBE: commons-codec (Boot 관리 버전)
+             전환 이유: Base64, Hex, DigestUtils 등 인코딩 유틸 최신화 -->
+        <dependency>
+            <groupId>commons-codec</groupId>
+            <artifactId>commons-codec</artifactId>
+        </dependency>
+
+        <!-- ASIS: commons-collections 3.x (org.apache.commons:commons-collections)
+             TOBE: commons-collections4 4.4 (org.apache.commons:commons-collections4)
+             전환 이유: commons-collections 3.x에 RCE 역직렬화 취약점(CVE-2015-6420) 존재,
+                        4.x로 필수 전환. groupId/artifactId 변경됨
+             [제거] commons-collections 3.x → RCE 취약점, collections4로 전환 필수 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-collections4</artifactId>
+            <version>4.4</version>
+        </dependency>
+
+        <!-- ASIS: commons-compress 1.x
+             TOBE: commons-compress 1.26.1
+             전환 이유: 압축/압축해제 보안 패치, JDK 17 호환 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-compress</artifactId>
+            <version>1.26.1</version>
+        </dependency>
+
+        <!-- ASIS: commons-io 1.x
+             TOBE: commons-io 2.16.1
+             전환 이유: FileUtils, IOUtils 등 유틸 클래스 대폭 개선, JDK 8+ NIO 지원 -->
+        <dependency>
+            <groupId>commons-io</groupId>
+            <artifactId>commons-io</artifactId>
+            <version>2.16.1</version>
+        </dependency>
+
+        <!-- ASIS: commons-lang 2.x (commons-lang:commons-lang, org.apache.commons.lang)
+             TOBE: commons-lang3 (Boot 관리 버전)
+             전환 이유: lang 2.x → lang3로 패키지 변경(org.apache.commons.lang3),
+                        StringUtils, ObjectUtils 등 API 개선 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-lang3</artifactId>
+        </dependency>
+
+        <!-- ASIS: commons-pool 1.x
+             TOBE: commons-pool2 (Boot 관리 버전)
+             전환 이유: pool 1.x EOL, 2.x에서 GenericObjectPool 완전 재설계 -->
+        <dependency>
+            <groupId>org.apache.commons</groupId>
+            <artifactId>commons-pool2</artifactId>
+        </dependency>
+
+        <!-- ASIS: dom4j 1.x (dom4j:dom4j)
+             TOBE: dom4j 2.1.4 (org.dom4j:dom4j)
+             전환 이유: 1.x에 XXE 취약점 존재, 2.x에서 groupId 변경 및 보안 패치 -->
+        <dependency>
+            <groupId>org.dom4j</groupId>
+            <artifactId>dom4j</artifactId>
+            <version>2.1.4</version>
+        </dependency>
+
+        <!-- ASIS: ehcache 2.x (net.sf.ehcache, javax 기반)
+             TOBE: ehcache 3.10.8 (org.ehcache:ehcache, Jakarta EE 호환)
+             전환 이유: EhCache 2.x EOL, 3.x에서 JSR-107(JCache) 표준 지원,
+                        Boot 3는 Jakarta EE 필수이므로 classifier=jakarta 지정 필요
+             [제거] ehcache 2.x → javax 기반, ehcache3 전환 -->
+        <dependency>
+            <groupId>org.ehcache</groupId>
+            <artifactId>ehcache</artifactId>
+            <version>3.10.8</version>
+            <classifier>jakarta</classifier>
+        </dependency>
+
+        <!-- ASIS: gson 없음 또는 구버전
+             TOBE: gson 2.10.1
+             전환 이유: JSON 직렬화/역직렬화, json-simple 대체 권장 -->
+        <dependency>
+            <groupId>com.google.code.gson</groupId>
+            <artifactId>gson</artifactId>
+            <version>2.10.1</version>
+        </dependency>
+
+        <!-- ASIS: httpclient 4.x (org.apache.httpcomponents:httpclient)
+               + commons-httpclient 3.x (제거)
+             TOBE: httpclient5 (Boot 관리 버전, org.apache.httpcomponents.client5:httpclient5)
+             전환 이유: HttpClient 4.x EOL 예정, 5.x에서 HTTP/2 지원 및 groupId 완전 변경
+             [제거] commons-httpclient 3.x → EOL, httpclient5로 대체 -->
+        <dependency>
+            <groupId>org.apache.httpcomponents.client5</groupId>
+            <artifactId>httpclient5</artifactId>
+        </dependency>
+
+        <!-- ASIS: nekohtml 1.x (HTML 파싱)
+             TOBE: jsoup 1.18.1 (신규 대체)
+             전환 이유: NekoHTML EOL, Jsoup이 사실상 표준 HTML 파서로 자리잡음 -->
+        <dependency>
+            <groupId>org.jsoup</groupId>
+            <artifactId>jsoup</artifactId>
+            <version>1.18.1</version>
+        </dependency>
+
+        <!-- ASIS: joda-time 1.x / 2.x
+             TOBE: joda-time 2.12.7
+             전환 이유: 기존 코드에서 org.joda.time 패키지를 사용하는 경우 버전업으로 유지.
+                        java.time 전환은 점진적으로 권장하나 즉시 교체 시 공수가 크다 -->
+        <dependency>
+            <groupId>joda-time</groupId>
+            <artifactId>joda-time</artifactId>
+            <version>2.12.7</version>
+        </dependency>
+
+        <!-- ASIS: json-simple 구버전
+             TOBE: json-simple 1.1.1 (com.googlecode.json-simple:json-simple)
+             전환 이유: 기존 코드 유지. 비권장이지만 Gson 전환 전 임시 유지
+             참고: 신규 코드에는 Gson 2.10.1 사용 권장 -->
+        <dependency>
+            <groupId>com.googlecode.json-simple</groupId>
+            <artifactId>json-simple</artifactId>
+            <version>1.1.1</version>
+        </dependency>
+
+        <!-- ASIS: poi 3.x
+             TOBE: poi 5.2.5 + poi-ooxml 5.2.5
+             전환 이유: Excel HSSF/XSSF 처리 성능 개선, XXE 취약점 패치, JDK 17 호환 -->
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi</artifactId>
+            <version>5.2.5</version>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.poi</groupId>
+            <artifactId>poi-ooxml</artifactId>
+            <version>5.2.5</version>
+        </dependency>
+
+        <!-- ASIS: velocity 1.x (org.apache.velocity:velocity)
+             TOBE: velocity-engine-core 2.3 (org.apache.velocity:velocity-engine-core)
+             전환 이유: Velocity 1.x EOL, 2.x에서 artifactId 변경,
+                        Boot 3에는 Velocity auto-config 없으므로 수동 Bean 설정 필요 -->
+        <dependency>
+            <groupId>org.apache.velocity</groupId>
+            <artifactId>velocity-engine-core</artifactId>
+            <version>2.3</version>
+        </dependency>
+
+        <!-- ASIS: xercesImpl 2.x
+             TOBE: xercesImpl 2.12.2
+             전환 이유: XML 파싱 보안 패치, XXE 방어 기본값 강화 -->
+        <dependency>
+            <groupId>xerces</groupId>
+            <artifactId>xercesImpl</artifactId>
+            <version>2.12.2</version>
+        </dependency>
+
+        <!-- xmlbeans: POI 5.x의 OOXML 처리에 필요 -->
+        <dependency>
+            <groupId>org.apache.xmlbeans</groupId>
+            <artifactId>xmlbeans</artifactId>
+            <version>5.2.0</version>
+        </dependency>
+
+        <!-- ASIS: activation 1.1 (JAF, JDK 8까지 포함)
+             TOBE: jakarta.activation-api (Boot 관리 버전)
+             전환 이유: JDK 17에서 javax.activation 제거됨. jakarta 네임스페이스 전환 필수 -->
+        <dependency>
+            <groupId>jakarta.activation</groupId>
+            <artifactId>jakarta.activation-api</artifactId>
+        </dependency>
+
+        <!-- ASIS: Log4j 1.2.x (직접 사용 금지)
+             TOBE: log4j-1.2-api + log4j-core (Log4j2 호환 브릿지, Boot 관리 버전)
+             전환 이유: Log4j 1.x EOL(CVE-2019-17571). 기존 org.apache.log4j.Logger API를
+                        유지하면서 실제 로깅은 Log4j2→SLF4J→Logback 체인으로 라우팅.
+             [제거] log4j 1.x → Logback -->
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-1.2-api</artifactId>
+        </dependency>
+        <dependency>
+            <groupId>org.apache.logging.log4j</groupId>
+            <artifactId>log4j-core</artifactId>
+        </dependency>
+
+    </dependencies>
+
+    <!-- ============================================================== -->
+    <!-- 제거된 라이브러리 (Spring Boot 3 전환 시 더 이상 필요 없음)    -->
+    <!-- ============================================================== -->
+    <!--
+        [제거] lucy-xss
+          → 유지보수 중단, Jakarta 미대응
+          → antisamy 1.7.6으로 대체
+
+        [제거] commons-httpclient 3.x
+          → EOL, Apache HttpComponents로 흡수됨
+          → httpclient5로 대체
+
+        [제거] commons-collections 3.x
+          → RCE 역직렬화 취약점 (CVE-2015-6420) - 전환 필수
+          → commons-collections4 4.4로 대체
+
+        [제거] ehcache 2.x
+          → javax 기반, Spring Boot 3 (Jakarta EE) 비호환
+          → ehcache 3.10.8 (classifier=jakarta)로 전환
+
+        [제거] quartz 1.x
+          → Spring Boot 3 비호환, API 전면 변경
+          → spring-boot-starter-quartz로 대체
+
+        [제거] jackson 1.x (org.codehaus.jackson)
+          → org.codehaus.jackson → com.fasterxml.jackson 완전 분리
+          → Boot Jackson2 (com.fasterxml.jackson)로 대체
+
+        [제거] log4j 1.x
+          → CVE-2019-17571 등 심각한 취약점
+          → log4j-1.2-api 브릿지 + Logback으로 전환
+    -->
+
+    <build>
+        <plugins>
+            <!-- Spring Boot Maven Plugin: 실행 가능한 JAR 패키징 -->
+            <plugin>
+                <groupId>org.springframework.boot</groupId>
+                <artifactId>spring-boot-maven-plugin</artifactId>
+            </plugin>
+        </plugins>
+    </build>
+
+</project>

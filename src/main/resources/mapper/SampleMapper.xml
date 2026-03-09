@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<!DOCTYPE mapper PUBLIC "-//mybatis.org//DTD Mapper 3.0//EN"
+    "http://mybatis.org/dtd/mybatis-3-mapper.dtd">
+
+<!--
+  MyBatis XML Mapper 예시.
+
+  ASIS: mybatis 3.2.x (수동 SqlSessionFactory, XML Mapper 수동 등록)
+  TOBE: mybatis-spring-boot-starter 3.0.3 (자동 구성, classpath:mapper/*.xml 스캔)
+-->
+<mapper namespace="com.ss.evote.mapper.SampleMapper">
+
+    <!-- DB 연결 확인용 SELECT 1 쿼리 (XML Mapper 방식) -->
+    <select id="selectOneFromXml" resultType="int">
+        SELECT 1
+    </select>
+
+</mapper>
