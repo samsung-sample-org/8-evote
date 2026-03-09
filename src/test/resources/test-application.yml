@@ -1,0 +1,7 @@
+# 테스트 전용 추가 설정
+# MyBatis 슬라이스 테스트(@MybatisTest)는 H2 인메모리 DB를 자동 구성한다.
+# 별도 데이터소스 설정 없이 동작한다.
+logging:
+  level:
+    org.mybatis: DEBUG
+    com.ss.evote: DEBUG
